@@ -5,18 +5,44 @@ export smallfawnPushWhite="脚本名字@脚本名字2"
 ``````
 脚本会自行判断是否是在黑白名单内的 如果存在则判断通知或不通知 
 青龙面板脚本公共仓库
-# 组织基地：https://jq.qq.com/?k=iC3qGTPD
-这里的脚本只是自己学习 js 的一个实践 仅用于测试和学习研究，禁止用于商业用途，不能保证其合法性，准确性，完整性和有效性，请根据情况自行判断.
+# 组织基地：QQ群1021185005
 # 青龙面板拉库命令
 ``````
-ql repo https://ghproxy.smallfawn.top/https://github.com/smallfawn/QLScriptPublic.git
+ql repo https://mirror.ghproxy.com/https://github.com/smallfawn/QLScriptPublic.git
 ``````
 # 如果您对我仓库感兴趣可以支付任意金额支持一下！
+# 赞助URL: http://pay.onecc.cc 有机器人插件 可购买源码
+# 开发的另一个项目 http://2w.onecc.cc 
+| 方式 | 金额 | 用户 | 备注 | 时间 |
+| --- | ---  | --- | --- | --- |
+| 微信 | 1.00 | *F | null | 2024-03-23 15.35 |
+| 微信 | 1.00 | *我 | null | 2024-03-23 17.02 |
+| 微信 | 33.33 | *. | null | 2024-03-23 18.26 |
+| 微信 | 1.00 | 永*C | null | 2024-03-23 18.56 |
+| 微信 | 1.00 | 1*1 | null | 2024-03-23 19.10 |
+| 微信 | 6.66 | *欢 | null | 2024-03-23 21.33 |
+| 支付宝 | 1.00 | *磊 | null | 2024-03-23 22.03 |
+| 支付宝 | 2.88 | *磊 | null | 2024-03-23 22.58 |
+| 微信 | 6.66 | *杰 | null | 2024-03-23 23.30 |
+| 支付宝 | 2.00 | 独钦 | null | 2024-03-24 02.32 |
+| 微信 | 1.00 | *、 | null | 2024-03-24 04.12 |
+| 支付宝 | 1.00 | *维 | null | 2024-03-24 15.51 |
+| 微信 | 5.00 | *客 | null | 2024-03-24 16.23 |
+| QQ | 1.00 | *3171 | null | 2024-03-26 23.29 |
+| 微信 | 6.00 | *老来乐 | null | 2024-03-27 8.55 |
+| 微信 | 1.00 | *明 | null | 2024-03-27 10.42 |
+| 微信 | 6.66 | *方 | 加鸡腿 | 2024-03-27 11.00 |
+| QQ | 1.00 | *阿金 | null | 2024-03-27 18.15 |
+| QQ | 1.00 | *聆风 | null | 2024-03-27 18.23 |
+| QQ | 20.00 | *萌哒 | 等新本 | 2024-03-27 18.50 |
+| QQ | 2.88 | *鹿管 | null | 2024-03-27 19.13 |
+| 微信 | 1.00 | *陈陈 | null | 2024-03-28 14.15 |
+| 微信 | 1.00 | *z | null | 2024-03-29 5.32 |
+| QQ | 8.88 | *叁 | null | 2024-03-29 10.56 |
 # 支付宝
-<img src="https://ghproxy.smallfawn.top/https://raw.githubusercontent.com/smallfawn/Note/main/Images/clzfb.png">
-
+<img src="https://mirror.ghproxy.com/https://raw.githubusercontent.com/smallfawn/Note/main/Images/clzfb.png">
 # 微信
-<img src="https://ghproxy.smallfawn.top/https://raw.githubusercontent.com/smallfawn/Note/main/Images/clwx.png">
+<img src="https://mirror.ghproxy.com/https://raw.githubusercontent.com/smallfawn/Note/main/Images/clwx.png">
 
 自用青龙docker搭建命令
 ``````
@@ -28,13 +54,13 @@ docker run -dit \
    -v $PWD/ql/raw:/ql/raw \
    -v $PWD/ql/scripts:/ql/scripts \
    -v $PWD/ql/deps:/ql/deps \
-   -v $PWD/ql/.pnpm-store:/ql/.pnpm-store \
    -p 5700:5700 \
    --name qinglong \
    --hostname qinglong \
    --restart unless-stopped \
    whyour/qinglong:2.11
 ``````
+这里的脚本只是自己学习 js 的一个实践 仅用于测试和学习研究，禁止用于商业用途，不能保证其合法性，准确性，完整性和有效性，请根据情况自行判断.
 
 仓库内所有资源文件，禁止任何公众号、自媒体进行任何形式的转载、发布。
 

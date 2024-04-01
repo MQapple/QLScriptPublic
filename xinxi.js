@@ -1,105 +1,277 @@
 /**
- * cron 25 10 * * *  wx_ZIWI+.js 
- * 积分换 猫粮狗粮
- * 变量名:ZIWIAUTH
- * 变量值:https://ziwi.gzcrm.cn/json-rpc? Headers中的authorization 去掉Bearer 去掉Bearer 去掉Bearer
- * 多账号& 或新增变量
+ * cron 9 9 * * *  xx.js
+ * 变量名: xinxi
+ * 每天运行一次就行 运行多次任务也不会多做
+ * 报错是正常情况
+ * 变量值:api.xinc818.com 请求头中sso的值 多账户&或者换行
  * scriptVersionNow = "0.0.1";
  */
 
-const $ = new Env("微信小程序ZIWI+");
+const $ = new Env("心喜-微信小程序");
 const notify = $.isNode() ? require('./sendNotify') : '';
-let ckName = "ZIWIAUTH";
+let ckName = "xinxi";
 let envSplitor = ["&", "\n"]; //多账号分隔符
 let strSplitor = "#"; //多变量分隔符
 let userIdx = 0;
 let userList = [];
-let msg = ""
 class Task {
     constructor(str) {
         this.index = ++userIdx;
         this.ck = str.split(strSplitor)[0]; //单账号多变量分隔符
         this.ckStatus = true;
-        //定义在这里的headers会被get请求删掉content-type 而不会重置
+        this.userId = null
         this.artList = []
+        this.goodsList = []
     }
     async main() {
-        await this.task_sign()
-        await this.act_list();
-        if (this.artList.length > 0) {
-            for (let act of this.artList) {
-                await this.task_like(act)
-                await this.task_share(act)
+
+        await this.user_info();
+        if (this.ckStatus == true) {
+            await this.task_signin();
+            await this.task_lottery()
+            await this.task_share()
+            await this.task_goods()
+            /*await this.art_list()
+            if (this.artList.length > 0) {
+                await this.task_follow(this.artList[0])
+            }*/
+            await this.goods_list()
+            if (this.goodsList.length > 0) {
+                await this.task_like(this.goodsList[0])
             }
+
+        }
+
+    }
+
+    async task_signin() {
+        try {
+            let result = await this.taskRequest("get", `https://api.xinc818.com/mini/sign/in?dailyTaskId=`)
+            //console.log(result);
+            if (result.code == 0) {
+                $.log(`✅账号[${this.index}]  签到状态【${result.data.flag}】获得积分【${result.data.integral}】🎉`)
+            } else {
+                console.log(`❌账号[${this.index}]  签到状态【false】`);
+                console.log(result);
+            }
+        } catch (e) {
+            console.log(e);
         }
     }
+    async user_info() {
+        try {
+            let result = await this.taskRequest("get", `https://api.xinc818.com/mini/user`)
+            //console.log(options);
+            //console.log(result);
+            if (result.code == 0) {
+                $.log(`✅账号[${this.index}]  【${result.data.nickname}】积分【${result.data.integral}】🎉`)
+                this.userId = result.data.id
+            } else {
+                console.log(`❌账号[${this.index}]  用户查询【false】`);
+                console.log(result);
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+    //浏览30sAPI
+    async task_goods() {
+        try {
+            let result = await this.taskRequest("get", `https://api.xinc818.com/mini/dailyTask/browseGoods/22`)
+            //console.log(options);
+            //console.log(result);
+            if (result.code == 0) {
+                if (result.data !== null) {
+                    $.log(`✅账号[${this.index}]  完成浏览30s成功 获得【${result.data.singleReward}】`)
+
+                } else {
+                    console.log(`❌账号[${this.index}]  完成浏览30s任务失败`);
+                }
+
+            } else {
+                console.log(`❌账号[${this.index}]  完成浏览30s任务失败`);
+
+                console.log(result);
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    //想要任务API
+    async task_like(id) {
+        //console.log(`https://api.xinc818.com/mini/integralGoods/${id}?type=`)
+        try {
+            let goodsResult = await this.taskRequest("get", `https://api.xinc818.com/mini/integralGoods/${id}?type=`)
+            if (goodsResult.data) {
+                let likeResult = await this.taskRequest("post", `https://api.xinc818.com/mini/live/likeLiveItem`, { "isLike": true, "dailyTaskId": 20, "productId": Number(goodsResult.data.outerId) })
+                //console.log(options);
+                //console.log(likeResult);
+                if (likeResult.code == 0) {
+                    if (likeResult.data !== null) {
+                        $.log(`✅账号[${this.index}]  完成点击想要任务成功 获得【${likeResult.data.singleReward}】`)
+
+                    } else {
+                        console.log(`❌账号[${this.index}]  完成点击想要任务失败`);
+                    }
+                } else {
+                    console.log(`❌账号[${this.index}]  完成点击想要任务失败`);
+                    console.log(likeResult);
+                }
+            }
+
+
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    //关注用户API
+    async task_follow(pusherId) {
+        console.log(pusherId)
+        try {
+            let result = await this.taskRequest("post", `https://api.xinc818.com/mini/user/follow`, { "decision": true, "followUserId": pusherId })
+            //console.log(options);
+            console.log(result);
+            if (result.code == 0) {
+                if (result.data !== null) {
+                    $.log(`✅账号[${this.index}]  完成关注用户任务成功 获得【${result.data.singleReward}】`)
+                } else {
+                    console.log(`❌账号[${this.index}]  完成关注用户任务失败`);
+                }
+            } else {
+                console.log(`❌账号[${this.index}]  完成关注用户任务失败`);
+                console.log(result);
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    //抽奖API
+    async task_lottery() {
+        try {
+            let result = await this.taskRequest("post", `https://api.xinc818.com/mini/lottery/draw`, { "activity": 63, "batch": false, "isIntegral": false, "userId": Number(this.userId), "dailyTaskId": 9 })
+            //console.log(options);
+            //console.log(result);
+            if (result.code == 0) {
+                if (result.data !== null) {
+                    $.log(`✅账号[${this.index}]  完成抽奖成功 获得【${result.data.taskResult.singleReward}】积分 奖品【${result.data.lotteryResult.integral}】`)
+
+                } else {
+                    console.log(`❌账号[${this.index}]  完成抽奖失败`);
+                }
+            } else {
+                console.log(`❌账号[${this.index}]  完成抽奖失败`);
+                console.log(result);
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    //分享API
+    async task_share() {
+        try {
+            let result = await this.taskRequest("get", `https://api.xinc818.com/mini/dailyTask/share`)
+            //console.log(options);
+            //console.log(result);
+            if (result.code == 0) {
+                if (result.data !== null) {
+                    $.log(`✅账号[${this.index}]  完成分享成功 获得【${result.data.singleReward}】`)
+
+                } else {
+                    console.log(`❌账号[${this.index}]  完成分享失败`);
+                }
+            } else {
+                console.log(`❌账号[${this.index}]  完成分享失败`);
+                console.log(result);
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    //获取帖子列表API(包含用户和帖子)
+    async art_list() {
+        try {
+            let result = await this.taskRequest("get", `https://cdn-api.xinc818.com/mini/posts/sorts?sortType=COMMENT&pageNum=1&pageSize=10&groupClassId=0`)
+            //console.log(options);
+            console.log(result);
+            if (result.code == 0) {
+                if (result.data.list.length > 0) {
+                    for (let i = 0; i < 2; i++)
+                        this.artList.push(result.data.list[i].publisherId)
+                }
+            } else {
+
+                console.log(result);
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+    //获取商品API
+    async goods_list() {
+        try {
+            let result = await this.taskRequest("get", `https://cdn-api.xinc818.com/mini/integralGoods?orderField=sort&orderScheme=DESC&pageSize=10&pageNum=1`)
+            //console.log(options);
+            //console.log(result);
+            if (result.code == 0) {
+                if (result.data.list.length > 0) {
+                    for (let i = 0; i < 2; i++)
+                        this.goodsList.push(result.data.list[i].id)
+                }
+            } else {
+
+                console.log(result);
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
     async taskRequest(method, url, body = "") {
         //
         let headers = {
-            "Host": "ziwi.gzcrm.cn",
+            //"Host": "api.xinc818.com",
             "Connection": "keep-alive",
-            //"Content-Length": "85",
-            "authorization": "Bearer "+ this.ck,
             "charset": "utf-8",
             "User-Agent": "Mozilla/5.0 (Linux; Android 10; MI 8 Lite Build/QKQ1.190910.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/116.0.0.0 Mobile Safari/537.36 XWEB/1160027 MMWEBSDK/20231002 MMWEBID/2585 MicroMessenger/8.0.43.2480(0x28002B51) WeChat/arm64 Weixin NetType/WIFI Language/zh_CN ABI/arm64 MiniProgramEnv/android",
-            "content-type": "application/json;charset=UTF-8",
+            "content-type": "application/json",
             "Accept-Encoding": "gzip,compress,br,deflate",
-            "Referer": "https://servicewechat.com/wxb26a710e583b05dc/41/page-frame.html"
+            "sso": this.ck,
+            "Referer": "https://servicewechat.com/wx673f827a4c2c94fa/253/page-frame.html"
         }
-        if (method == "get") {
-            let { body: result } = await $.httpRequest({ method: method, headers: headers, url: url })
-            return result
-        } else {
-            let { body: result } = await $.httpRequest({ method: method, url: url, headers: headers, body: JSON.stringify(body) })
-            return result
+        const reqeuestOptions = {
+            url: url,
+            method: method,
+            headers: headers
         }
-
-    }
-    async task_sign() {
-        //签到
-        let result = await this.taskRequest("post", `https://ziwi.gzcrm.cn/json-rpc?__method=DoCheckin`, { "id": Date.now(), "jsonrpc": "2.0", "method": "DoCheckin", "params": { "activityId": "1" } })
-        //console.log(options);
-        $.log(JSON.stringify(result.result));
-    }
-    async task_like(id) {
-        //点赞帖子
-        let result = await this.taskRequest("post", `https://ziwi.gzcrm.cn/json-rpc?__method=LikeThread`, { "id": Date.now(), "jsonrpc": "2.0", "method": "LikeThread", "params": { "threadId": id } })
-        //console.log(options);
-        $.log(JSON.stringify(result.result));
-    }
-
-    async task_share(id) {
-        //分享帖子
-        let result = await this.taskRequest("post", `https://ziwi.gzcrm.cn/json-rpc?__method=LikeThread`, { "id": 1704777211084, "jsonrpc": "2.0", "method": "SubmitCrmTrackLog", "params": { "event": "shareThread", "params": { "threadId": id, "path": "/pages/UserPosters/UserPosters?threadId=" + id } } })
-        //console.log(options);
-        $.log(JSON.stringify(result.result));
-    }
-    async act_list() {
-        //分享帖子
-        let result = await this.taskRequest("post", `https://ziwi.gzcrm.cn/json-rpc?__method=GetZIWIThreadList`, { "id": 1704777373474, "jsonrpc": "2.0", "method": "GetZIWIThreadList", "params": { "type": "ziwi", "pageSize": 10, "currentPage": 1 } })
-        //console.log(result.result);
-        if (result.result.list) {
-            for (let act of result.result.list) {
-                this.artList.push(act.threadId)
+        if (method !== "get") {
+            if (headers["Content-Type"] == "application/json") {
+                reqeuestOptions["body"] = JSON.stringify(body);
+            } else {
+                reqeuestOptions["body"] = body
             }
         }
+        let { body: result } = await $.httpRequest(reqeuestOptions)
+        return result
     }
 }
 
-async function start() {
-    let taskall = [];
-    for (let user of userList) {
-        if (user.ckStatus) {
-            taskall.push(await user.main());
-        }
-    }
-    await Promise.all(taskall);
-}
+
 
 !(async () => {
     if (!(await checkEnv())) return;
     if (userList.length > 0) {
-        await start();
+        let taskall = [];
+        for (let user of userList) {
+            if (user.ckStatus) {
+                taskall.push(user.main());
+            }
+        }
+        await Promise.all(taskall);
     }
     await $.sendMsg($.logs.join("\n"))
 })()
@@ -122,7 +294,7 @@ async function checkEnv() {
             }
         for (let n of userCookie.split(e)) n && userList.push(new Task(n));
     } else {
-        console.log("未找到CK");
+        console.log(`未找到CK【${ckName}】`);
         return;
     }
     return console.log(`共找到${userList.length}个账号`), true; //true == !0
@@ -289,7 +461,7 @@ function Env(t, s) {
                 const paramPairs = queryString.split('&');
                 paramPairs.forEach(pair => {
                     const [key, value] = pair.split('=');
-                    params[key] = decodeURIComponent(value);
+                    params[key] = value;
                 });
             }
             return params;
@@ -332,27 +504,28 @@ function Env(t, s) {
             if (t.method === 'get') {
                 delete t.headers['Content-Type'];
                 delete t.headers['Content-Length'];
+                delete t.headers['content-type'];
+                delete t.headers['content-length'];
                 delete t["body"]
             }
             if (t.method === 'post') {
-                let contentType;
-
+                let ContentType;
                 if (!t.body) {
                     t.body = ""
                 } else {
                     if (typeof t.body == "string") {
                         if (this.isJSONString(t.body)) {
-                            contentType = 'application/json'
+                            ContentType = 'application/json'
                         } else {
-                            contentType = 'application/x-www-form-urlencoded'
+                            ContentType = 'application/x-www-form-urlencoded'
                         }
                     } else if (this.isJson(t.body)) {
                         t.body = JSON.stringify(t.body);
-                        contentType = 'application/json';
+                        ContentType = 'application/json';
                     }
                 }
-                if (!t.headers['Content-Type']) {
-                    t.headers['Content-Type'] = contentType;
+                if (!t.headers['Content-Type'] || !t.headers['content-type']) {
+                    t.headers['Content-Type'] = ContentType;
                 }
                 delete t.headers['Content-Length'];
             }
